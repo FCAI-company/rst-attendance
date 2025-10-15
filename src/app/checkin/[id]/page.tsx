@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react"; 
+import { useEffect, useState } from "react"; 
 import { CheckCircle2, Camera, QrCode } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Label } from "@/Components/ui/label";
@@ -10,6 +10,9 @@ import { useParams } from "next/navigation";
 export default function CheckinPage() {
 
     const { id } = useParams(); 
+    useEffect(()=>{
+console.log("Check-in ID:", id);
+    },[])
   const [studentId, setStudentId] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [attendanceData, setAttendanceData] = useState<any>(null);

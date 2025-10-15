@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { encryptData, decryptData } from "../encryption";
+import { encryptData, decryptData } from "../cryptoUtils";
 
 const DATA_FILE = path.join(process.cwd(), "data", "records.enc");
 
@@ -34,9 +34,12 @@ export function addRecord(record: any) {
 
 export function updateRecord(id: string, newData: any) {
   const records = readRecords();
+  console.log("Current records before update:", records);
   const index = records.findIndex((r) => r.id === id);
   if (index !== -1) {
-    records[index] = { ...records[index], ...newData };
+    records[index] = { id, newData };
     writeRecords(records);
+  }else{
+    addRecord({id,newData});
   }
 }

@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
   AttendanceSchema,
   AttendanceArraySchema,
 } from "@/lib/data/attendanceSchema";
-import { decryptData, encryptData } from "@/lib/data/cryptoUtils";
+import { decryptData, encryptData } from "@/lib/cryptoUtils";
 const DATA_PATH = path.join(process.cwd(), "data/attendance.json");
 
 export async function POST(req: Request) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { addRecord, readRecords, updateRecord } from "@/lib/instructor/qrinfo";
+import { decryptData } from "@/lib/cryptoUtils";
 
 export async function GET() {
   const data = readRecords();
@@ -14,6 +15,8 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   const body = await req.json();
-  updateRecord(body.id, body);
+  console.log("PUT body:", body);
+ 
+  updateRecord(body.split("_")[0], body.split("_")[1]);
   return NextResponse.json({ success: true });
 }

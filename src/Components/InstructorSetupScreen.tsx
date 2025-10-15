@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import QRCode from "qrcode";
+import { encryptData } from "@/lib/cryptoUtils";
 
 export function InstructorSetupScreen() {
   const [location, setLocation] = useState("");
@@ -30,12 +31,16 @@ export function InstructorSetupScreen() {
   const [sessionType, setSessionType] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(30);
+    const [timeLeft, setTimeLeft] = useState(20);
 
     useEffect(() => {
       if (qrCodeUrl) {
         if (timeLeft <= 0) {
-          setTimeLeft(30);
+
+          generateQRCode().then(() => {
+            setTimeLeft(20);
+          });
+         
         }
 
         const timer = setInterval(() => {
@@ -45,7 +50,41 @@ export function InstructorSetupScreen() {
       }
     }, [timeLeft, qrCodeUrl]);
 const hash = crypto.createHash("sha256");
+
+ 
+
+const GenTkn = async() => {
+     const sessionid =
+       sessionType +
+       "-" +
+       courseCode +
+       "-" +
+       location +
+       "-" +
+       new Date().getFullYear() +
+       "-" +
+       (new Date().getMonth() + 1) +
+       "-" +
+       new Date().getDate();
+
+ 
+ 
+     const tkn = crypto.randomBytes(16).toString("hex");
+ 
+     await fetch("/api/qr", {
+       method: "PUT",
+       body: JSON.stringify(`${sessionid}_${tkn}`),
+     });
+  return `${sessionid}_${tkn}`;
+};
+
   const generateQRCode = async () => {
+    const ress = await fetch("/api/qr");
+    const datas = await ress.json();
+      
+console.log("Existing records:", datas);
+
+
     if (!location || !courseCode || !sessionType) {
       alert("Please fill in all fields");
       return;
@@ -62,11 +101,10 @@ const hash = crypto.createHash("sha256");
 
     try {
 
-      const sessionid = sessionType + "_" + courseCode + "_" + location;
-      hash.update( sessionid);
-      const digest = hash.digest("hex");
+    
+      const tkn=await GenTkn();
       const url = await QRCode.toDataURL(
-        `${window.location.origin}/checkin/${digest}_`,
+        `${window.location.origin}/checkin/${tkn}`,
         {
           width: 300,
           margin: 2,
@@ -76,6 +114,7 @@ const hash = crypto.createHash("sha256");
           },
         },
       );
+      
       setQrCodeUrl(url);
     } catch (error) {
       console.error("Error generating QR code:", error);
@@ -183,7 +222,7 @@ const hash = crypto.createHash("sha256");
 
           {qrCodeUrl && (
             <div className="fade-in  space-y-4 pt-4 border-t border-border">
-              <div className="text-center">
+              <div className="text-center ">
                 <div className="flex justify-center">
                   <div className="bg-white p-4 rounded-lg shadow-md inline-block">
                     <div
