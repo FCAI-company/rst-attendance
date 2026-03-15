@@ -1,5 +1,6 @@
+"use client"
 import Image from 'next/image';
-import React from 'react'
+import React, { use } from 'react'
 
 export default function Header() {
   return (

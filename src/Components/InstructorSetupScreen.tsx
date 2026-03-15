@@ -23,33 +23,53 @@ import {
   SelectValue,
 } from "./ui/select";
 import QRCode from "qrcode";
-import { encryptData } from "@/lib/cryptoUtils";
+import { ScheduleEntry } from "@/lib/data/schedule";
+import { getSchedule } from "@/lib/handle/getdata";
 
 export function InstructorSetupScreen() {
   const [location, setLocation] = useState("");
   const [courseCode, setCourseCode] = useState("");
+  const [Instructor, setInstructor] = useState("");
+const [error, seterror] = useState("");
   const [sessionType, setSessionType] = useState("");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(20);
+  const [isSend, setIssend] = useState(false);
+
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [Schedules, setSchedules] = useState<ScheduleEntry[]>([]);
+
+useEffect(() => {
+  const data = getSchedule() as ScheduleEntry[];
+  if (!Array.isArray(data)) {
+    setSchedules([]);
+    return;
+  }
+
+  const unique = [...new Map(data.map((s) => [s.Hall, s])).values()];
+  setSchedules(unique);
+
+  const location = localStorage.getItem("location");
+  if (location && unique.some((s) => s.Hall === location)) {
+    handleChange(location, unique);
+  }
+}, []);
 
     useEffect(() => {
       if (qrCodeUrl) {
         if (timeLeft <= 0) {
 
           generateQRCode().then(() => {
-            setTimeLeft(20);
+            setTimeLeft(60);
           });
-         
         }
-
         const timer = setInterval(() => {
           setTimeLeft((t) => t - 1);
         }, 1000);
         return () => clearInterval(timer);
       }
     }, [timeLeft, qrCodeUrl]);
-const hash = crypto.createHash("sha256");
+// const hash = crypto.createHash("sha256");
 
  
 
@@ -60,49 +80,56 @@ const GenTkn = async() => {
        courseCode +
        "-" +
        location +
-       "-" +
-       new Date().getFullYear() +
-       "-" +
-       (new Date().getMonth() + 1) +
-       "-" +
-       new Date().getDate();
-
+       "_" +
+       Date.now();
+      //  const tkn = crypto.randomBytes(16).toString("hex");
  
- 
-     const tkn = crypto.randomBytes(16).toString("hex");
- 
-     await fetch("/api/qr", {
-       method: "PUT",
-       body: JSON.stringify(`${sessionid}_${tkn}`),
-     });
-  return `${sessionid}_${tkn}`;
+  return `${sessionid.replace(/\s/g, "")}`;
 };
 
   const generateQRCode = async () => {
-    const ress = await fetch("/api/qr");
-    const datas = await ress.json();
+    // const ress = await fetch("/api/qr");
+    // const datas = await ress.json();
       
-console.log("Existing records:", datas);
+ 
+
+    // if (!location || !courseCode || !sessionType) {
+    //   alert("Please fill in all fields");
+    //   return;
+    // }
 
 
-    if (!location || !courseCode || !sessionType) {
-      alert("Please fill in all fields");
-      return;
-    }
+ 
 
     setIsGenerating(true);
 
-    const attendanceData = JSON.stringify({
-      location,
-      courseCode,
-      sessionType,
-      timestamp: new Date().toISOString(),
-    });
-
+    // const attendanceData = JSON.stringify({
+    //   location,
+    //   courseCode,
+    //   sessionType,
+    //   timestamp: new Date().toISOString(),
+    // });
+if (!location || !courseCode || !sessionType) {
+      seterror("Please fill in all fields");
+      setIsGenerating(false);
+      return;
+    }
     try {
-
-    
       const tkn=await GenTkn();
+      console.log(`${window.location.origin}/checkin/${tkn}`);
+         if (!isSend) {
+           await fetch("/api/qr", {
+             method: "post",
+             body: JSON.stringify({
+               location,
+               courseCode,
+               Instructor,
+               sessionType,
+               tkn
+             }),
+             //  body: JSON.stringify(`${sessionid.replace(/\s/g, "")}`),
+           }).then(() => setIssend(true));
+         }
       const url = await QRCode.toDataURL(
         `${window.location.origin}/checkin/${tkn}`,
         {
@@ -114,7 +141,7 @@ console.log("Existing records:", datas);
           },
         },
       );
-      
+      localStorage.setItem("location", location);
       setQrCodeUrl(url);
     } catch (error) {
       console.error("Error generating QR code:", error);
@@ -131,6 +158,24 @@ console.log("Existing records:", datas);
     setQrCodeUrl("");
   };
 
+const handleChange = (hall: string, schedules: ScheduleEntry[]) => {
+  setLocation(hall);
+seterror("");
+  const entry = schedules.find((s) => s.Hall === hall);
+
+  setCourseCode(entry?.Course || "");
+
+  const type = entry?.TeachingMethod || "";
+  setSessionType(
+    type.toLowerCase().includes("lab")
+      ? "lab"
+      : type.toLowerCase().includes("tutorial")
+        ? "tutorial"
+        : "lecture",
+  );
+
+  setInstructor(entry?.InstructorName || "");
+};
   return (
     <div className=" w-full max-w-md mx-auto p-4 space-y-6 ">
       <div className="text-center space-y-2">
@@ -161,7 +206,7 @@ console.log("Existing records:", datas);
             <>
               <div className="space-y-2">
                 <Label htmlFor="location">Choose Location</Label>
-                <Select value={location} onValueChange={setLocation}>
+                <Select value={location} onValueChange={(value) => handleChange(value, Schedules)}>
                   <SelectTrigger
                     id="location"
                     className="h-12 bg-input-background border-border"
@@ -169,17 +214,28 @@ console.log("Existing records:", datas);
                     <SelectValue placeholder="Select a location" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="building-a-201">
-                      Building A - Room 201
-                    </SelectItem>
-                    <SelectItem value="building-b-lab3">
-                      Building B - Lab 3
-                    </SelectItem>
-                    <SelectItem value="online">Online Session</SelectItem>
-                    <SelectItem value="library-hall">Library Hall</SelectItem>
-                    <SelectItem value="auditorium">Main Auditorium</SelectItem>
+                    {Schedules.length > 0
+                      ? Schedules.map((s: ScheduleEntry) => (
+                          <SelectItem key={s.Course + s.Hall} value={s.Hall}>
+                            {s.Hall}
+                          </SelectItem>
+                        ))
+                      : "No locations available"}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="Instructor">Instructor DR / ENG</Label>
+                <Input
+                  id="Instructor"
+                  type="text"
+                  placeholder="Name"
+                  disabled={Instructor ? true : false}
+                  value={Instructor}
+                  onChange={(e) => setInstructor(e.target.value)}
+                  className="h-12 bg-input-background border-border"
+                />
               </div>
 
               <div className="space-y-2">
@@ -188,6 +244,7 @@ console.log("Existing records:", datas);
                   id="courseCode"
                   type="text"
                   placeholder="e.g., CS101"
+                  disabled={courseCode ? true : false}
                   value={courseCode}
                   onChange={(e) => setCourseCode(e.target.value)}
                   className="h-12 bg-input-background border-border"
@@ -196,7 +253,11 @@ console.log("Existing records:", datas);
 
               <div className="space-y-2">
                 <Label htmlFor="sessionType">Session Type</Label>
-                <Select value={sessionType} onValueChange={setSessionType}>
+                <Select
+                  disabled={sessionType ? true : false}
+                  value={sessionType}
+                  onValueChange={setSessionType}
+                >
                   <SelectTrigger
                     id="sessionType"
                     className="h-12 bg-input-background border-border"
@@ -210,6 +271,7 @@ console.log("Existing records:", datas);
                   </SelectContent>
                 </Select>
               </div>
+              <div className="text-red-600 text-sm">{error}</div>
               <Button
                 onClick={generateQRCode}
                 className="w-full h-14 text-lg"
