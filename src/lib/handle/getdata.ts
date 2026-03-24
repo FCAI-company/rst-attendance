@@ -16,10 +16,12 @@ export function getSchedule(): ScheduleEntry[] | string {
   // const dayName = days[date.getDay()];
   // const hour = date.getHours();
   const now = new Date();
-  const currentDay = "Monday";
-  // now.toLocaleDateString("en-US", { weekday: "long" });
-  const currentTime = "09:00:00";
-  // now.toTimeString().slice(0, 8); // HH:MM:SS
+  // ("Monday");
+
+  const currentDay = now.toLocaleDateString("en-US", { weekday: "long" });
+ // ("09:00:00");
+  
+  const currentTime = now.toTimeString().slice(0, 8); // HH:MM:SS
   const currentClass = schedule.filter((item) => {
     return (
       item.Day === currentDay &&
@@ -27,6 +29,6 @@ export function getSchedule(): ScheduleEntry[] | string {
       item.TimeTo >= currentTime
     );
   });
-console.log(currentClass);
+   
   return currentClass.length > 0 ? currentClass : "No class at the moment";
 }

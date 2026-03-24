@@ -142,12 +142,12 @@ function secondsBetween(time1: string): number {
           <CardDescription>
             Mark your attendance for today's session
           </CardDescription>
-          {SEC}
+      
         </CardHeader>
 
         {istimeout ? (
           <CardContent className="space-y-6">
-            <h2>Time is up, please rescan the code.</h2>
+            <h2 className="text-center text-red-700 font-bold">Time is up, please rescan the code.</h2>
             <QRScanner />
           </CardContent>
         ) : (

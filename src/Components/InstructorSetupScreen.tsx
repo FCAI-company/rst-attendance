@@ -32,6 +32,8 @@ export function InstructorSetupScreen() {
   const [Instructor, setInstructor] = useState("");
 const [error, seterror] = useState("");
   const [sessionType, setSessionType] = useState("");
+  const [sessionGroup, setSessionGroup] = useState("");
+
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSend, setIssend] = useState(false);
@@ -155,6 +157,7 @@ if (!location || !courseCode || !sessionType) {
     setLocation("");
     setCourseCode("");
     setSessionType("");
+    setSessionGroup("");
     setQrCodeUrl("");
   };
 
@@ -173,7 +176,7 @@ seterror("");
         ? "tutorial"
         : "lecture",
   );
-
+  setSessionGroup(entry?.Section || "");
   setInstructor(entry?.InstructorName || "");
 };
   return (
@@ -206,7 +209,10 @@ seterror("");
             <>
               <div className="space-y-2">
                 <Label htmlFor="location">Choose Location</Label>
-                <Select value={location} onValueChange={(value) => handleChange(value, Schedules)}>
+                <Select
+                  value={location}
+                  onValueChange={(value) => handleChange(value, Schedules)}
+                >
                   <SelectTrigger
                     id="location"
                     className="h-12 bg-input-background border-border"
@@ -310,6 +316,11 @@ seterror("");
                     <span className="text-muted-foreground">Type:</span>{" "}
                     <span className="text-primary capitalize">
                       {sessionType}
+                    </span>
+
+                    <span className="text-muted-foreground ml-4">Group:</span>{" "}
+                    <span className="text-primary capitalize">
+                      {sessionGroup}
                     </span>
                   </p>
                 </div>

@@ -15,12 +15,12 @@ import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 
 interface AttendanceRecord {
-  id: string;
+  _id: string;
   studentId: string;
   studentName: string;
   location: string;
-  checkInTime: string;
-  timestamp: Date;
+  // checkInTime: string;
+  timestamp: string;
 }
 
 interface SessionInfo {
@@ -33,7 +33,7 @@ interface SessionInfo {
 }
 
 export default function AttendanceReportScreen() {
-  const { id } = useParams();
+  const { id } = useParams() as { id: string };
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
@@ -43,16 +43,16 @@ export default function AttendanceReportScreen() {
   useEffect(() => {
     // Simulate fetching data from database/API
     // In production, you would fetch this from your backend using the reportId
-    const fetchAttendanceData = async () => {
+   
       setIsLoading(true);
 
       // Mock data - replace with actual API call
-      setTimeout(() => {
+    
         const mockSessionInfo: SessionInfo = {
           sessionId: id + "" || "unknown",
-          courseCode: "CS101",
-          sessionType: "Lecture",
-          location: "Building A - Room 201",
+          courseCode: id?.split("-")[1].toUpperCase() || "UNKNOWN",
+          sessionType: id?.split("-")[0].toUpperCase() || "UNKNOWN",
+          location: id?.split("_")[0].split("-")[2].toUpperCase() || "UNKNOWN",
           sessionDate: new Date().toLocaleDateString("en-US", {
             weekday: "long",
             year: "numeric",
@@ -61,83 +61,25 @@ export default function AttendanceReportScreen() {
           }),
           totalStudents: 0,
         };
+        fetch(`/api/attendance?sessionId=${id}`)
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("Fetched attendance data:", data);
+             mockSessionInfo.totalStudents = data.data.length;
 
-        const mockRecords: AttendanceRecord[] = [
-          {
-            id: "1",
-            studentId: "2024001",
-            studentName: "Alice Johnson",
-            location: "Building A - Room 201",
-            checkInTime: "09:15 AM",
-            timestamp: new Date("2024-03-15T09:15:00"),
-          },
-          {
-            id: "2",
-            studentId: "2024002",
-            studentName: "Bob Smith",
-            location: "Building A - Room 201",
-            checkInTime: "09:18 AM",
-            timestamp: new Date("2024-03-15T09:18:00"),
-          },
-          {
-            id: "3",
-            studentId: "2024003",
-            studentName: "Carol Williams",
-            location: "Building A - Room 201",
-            checkInTime: "09:20 AM",
-            timestamp: new Date("2024-03-15T09:20:00"),
-          },
-          {
-            id: "4",
-            studentId: "2024004",
-            studentName: "David Brown",
-            location: "Building A - Room 201",
-            checkInTime: "09:22 AM",
-            timestamp: new Date("2024-03-15T09:22:00"),
-          },
-          {
-            id: "5",
-            studentId: "2024005",
-            studentName: "Emma Davis",
-            location: "Building A - Room 201",
-            checkInTime: "09:25 AM",
-            timestamp: new Date("2024-03-15T09:25:00"),
-          },
-          {
-            id: "6",
-            studentId: "2024006",
-            studentName: "Frank Miller",
-            location: "Building A - Room 201",
-            checkInTime: "09:28 AM",
-            timestamp: new Date("2024-03-15T09:28:00"),
-          },
-          {
-            id: "7",
-            studentId: "2024007",
-            studentName: "Grace Wilson",
-            location: "Building A - Room 201",
-            checkInTime: "09:30 AM",
-            timestamp: new Date("2024-03-15T09:30:00"),
-          },
-          {
-            id: "8",
-            studentId: "2024008",
-            studentName: "Henry Moore",
-            location: "Building A - Room 201",
-            checkInTime: "09:32 AM",
-            timestamp: new Date("2024-03-15T09:32:00"),
-          },
-        ];
+             setSessionInfo(mockSessionInfo);
+             setAttendanceRecords(data.data);
+             setIsLoading(false);
+          })
+          .catch((err) => {
+            console.error("Error fetching attendance data:", err);
+          });
 
-        mockSessionInfo.totalStudents = mockRecords.length;
+    
 
-        setSessionInfo(mockSessionInfo);
-        setAttendanceRecords(mockRecords);
-        setIsLoading(false);
-      }, 1000);
-    };
-
-    fetchAttendanceData();
+       
+     
+    
   }, [id]);
 
   const downloadExcel = () => {
@@ -149,7 +91,7 @@ export default function AttendanceReportScreen() {
       "Student ID": record.studentId,
       "Student Name": record.studentName,
       Location: record.location,
-      "Check-in Time": record.checkInTime,
+      "Check-in Time": record.timestamp,
       "Full Timestamp": record.timestamp.toLocaleString(),
     }));
 
@@ -225,7 +167,8 @@ export default function AttendanceReportScreen() {
             <div className="text-left">
               <h1 className="text-primary mb-1">Attendance Report</h1>
               <p className="text-muted-foreground">
-                {sessionInfo.courseCode} - {sessionInfo.sessionType}
+                {sessionInfo.courseCode}
+                 {/* - {sessionInfo.sessionType} */}
               </p>
             </div>
             <CardTitle className="flex items-center gap-2">
@@ -241,7 +184,7 @@ export default function AttendanceReportScreen() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-blue-600 mb-1">
                   <FileSpreadsheet className="w-4 h-4" />
-                  <span className="text-sm font-medium">Course Code</span>
+                  <span className="text-sm font-medium">Course</span>
                 </div>
                 <p className="text-lg font-bold text-blue-900">
                   {sessionInfo.courseCode}
@@ -326,7 +269,7 @@ export default function AttendanceReportScreen() {
                 <tbody>
                   {attendanceRecords.map((record, index) => (
                     <tr
-                      key={record.id}
+                      key={record._id}
                       className="border-b border-border hover:bg-blue-50/50 transition-colors"
                     >
                       <td className="py-3 px-4 text-sm">{index + 1}</td>
@@ -345,7 +288,7 @@ export default function AttendanceReportScreen() {
                       <td className="py-3 px-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {record.checkInTime}
+                          {record.timestamp.toLocaleString()}
                         </div>
                       </td>
                     </tr>
@@ -358,7 +301,7 @@ export default function AttendanceReportScreen() {
             <div className="md:hidden space-y-3">
               {attendanceRecords.map((record, index) => (
                 <div
-                  key={record.id}
+                  key={record._id}
                   className="bg-white border border-border rounded-lg p-4 shadow-sm"
                 >
                   <div className="flex justify-between items-start mb-3">
@@ -381,7 +324,7 @@ export default function AttendanceReportScreen() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="w-4 h-4" />
-                      {record.checkInTime}
+                      {record.timestamp.toLocaleString()}
                     </div>
                   </div>
                 </div>

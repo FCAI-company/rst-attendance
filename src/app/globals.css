@@ -235,3 +235,12 @@ html {
 .fade-in {
   animation: fadeIn 1s ease-out forwards;
 }
+
+#reader{
+  border: none !important;
+}
+#reader__scan_region{
+      display: flex;
+      
+    justify-content: center;
+}
