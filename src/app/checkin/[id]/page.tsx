@@ -28,25 +28,7 @@ export default function CheckinPage() {
     null,
   );
 
-  const getLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation not supported");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      },
-      (error) => {
-        console.error(error);
-      },
-    );
-  };
-
+  
 
 
 const startCooldown = (studentId: string) => {
@@ -68,7 +50,10 @@ function secondsBetween(time1: string): number {
 
 
   useEffect(() => {
-    getLocation();
+        if (!navigator.geolocation) {
+          alert("Geolocation not supported");
+          return;
+        }
     if(!id){
            return;
     }
@@ -108,13 +93,27 @@ function secondsBetween(time1: string): number {
       alert("Please enter your Student ID");
       return;
     }
+
+    let lat,lng;
+     navigator.geolocation.getCurrentPosition(
+      (position) => {
+        
+          lat=position.coords.latitude
+          lng= position.coords.longitude
+        
+      },
+      (error) => {
+        console.error(error);
+      },
+    );
     fetch("/api/attendance", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentId, sessionId: id , lat: location?.lat, lng: location?.lng }),
+      body: JSON.stringify({ studentId, sessionId: id ,  lat, lng }),
     }).then((res) => res.json())
       .then((data) => {
         if (data.success) { 
+         
           localStorage.setItem(StudentId_KEY, studentId);
           startCooldown(studentId);             
 

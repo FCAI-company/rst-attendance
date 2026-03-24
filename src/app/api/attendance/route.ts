@@ -39,6 +39,7 @@ export async function POST(request: Request) {
       lat: number;
       lng: number;
     };
+    console.log("Received attendance POST:", { studentId, sessionId, lat, lng });
     if (!studentId || !sessionId) {
       return NextResponse.json(
         { error: "Missing studentId or sessionId" },
