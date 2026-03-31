@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const { Instructor, location, courseCode, sessionType, tkn } =
       await req.json();
+      const url=process.env.URL + '/students/' + tkn;
       const html = `
       <!DOCTYPE html>
       <html>
@@ -115,15 +116,7 @@ export async function POST(req: NextRequest) {
       <!-- CTA -->
       <tr>
       <td align="center" style="padding:20px 40px 35px 40px;">
-      <a href="${process.env.URL + "/students/" + tkn}" style="
-      background:#2563eb;
-      color:#ffffff;
-      text-decoration:none;
-      padding:14px 34px;
-      font-size:15px;
-      font-weight:600;
-      border-radius:8px;
-      display:inline-block;">
+      <a href="${url}" style="background:#2563eb;color:#ffffff;text-decoration:none;padding:14px 34px;font-size:15px;font-weight:600;border-radius:8px;display:inline-block;">
       Show all students</a>
       </td>
       </tr>
