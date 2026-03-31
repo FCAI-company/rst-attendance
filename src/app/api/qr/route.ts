@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       <!-- Intro -->
       <tr>
       <td style="padding:35px 40px 10px 40px;color:#374151;font-size:16px;line-height:1.6;">
-      Dear DR. ${Instructor},<br><br>
+      Dear ${Instructor},<br><br>
 
       This is an automated notification from the <strong>University Attendance System</strong>.  
       I hope this message finds you well.
