@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
   try {
     const { Instructor, location, courseCode, sessionType, tkn } =
       await req.json();
-      const token=encodeURIComponent(tkn);
       const html = `
       <!DOCTYPE html>
       <html>
@@ -100,19 +99,23 @@ export async function POST(req: NextRequest) {
       )}</span>
       </td>
       </tr>
+
       <tr>
       <td style="padding:12px 0;">
       <span style="color:#6b7280;font-size:13px;">LOCATION</span><br>
       <span style="font-size:16px;font-weight:600;color:#111827;">${location}</span>
       </td>
       </tr>
+
       </table>
+
       </td>
       </tr>
+
       <!-- CTA -->
       <tr>
       <td align="center" style="padding:20px 40px 35px 40px;">
-      <a href="${process.env.URL + "/students/" + token}" style="
+      <a href="${process.env.URL + "/students/" + tkn}" style="
       background:#2563eb;
       color:#ffffff;
       text-decoration:none;
