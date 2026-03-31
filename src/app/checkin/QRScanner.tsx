@@ -16,8 +16,7 @@ export default function QRScanner() {
        { facingMode: "environment" },
        { fps: 10, qrbox: 250 },
        (decodedText) => {
-         console.log("QR Code:", decodedText);
-         alert(decodedText);
+        window.location.replace(decodedText);
        },
        (error) => {
          console.warn(error);
