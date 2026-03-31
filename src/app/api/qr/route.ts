@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
       <!-- CTA -->
       <tr>
       <td align="center" style="padding:20px 40px 35px 40px;">
-      <a href="${process.env.URL + "/students/" + tkn}" style="
+      <a href="${process.env.URL + "/students/" + encodeURIComponent(tkn)}" style="
       background:#2563eb;
       color:#ffffff;
       text-decoration:none;

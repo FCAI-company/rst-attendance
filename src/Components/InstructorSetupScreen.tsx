@@ -159,6 +159,9 @@ if (!location || !courseCode || !sessionType) {
     setSessionType("");
     setSessionGroup("");
     setQrCodeUrl("");
+    setTimeLeft(60);
+    setIssend(false);
+    
   };
 
 const handleChange = (hall: string, schedules: ScheduleEntry[]) => {

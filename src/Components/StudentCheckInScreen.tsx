@@ -26,7 +26,6 @@ export function StudentCheckInScreen() {
     // Simulate attendance submission
     setAttendanceData({
       studentId,
-      courseCode: "CS101",
       timestamp: new Date().toLocaleString(),
     });
     setIsSubmitted(true);

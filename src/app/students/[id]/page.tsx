@@ -49,10 +49,10 @@ export default function AttendanceReportScreen() {
       // Mock data - replace with actual API call
     
         const mockSessionInfo: SessionInfo = {
-          sessionId: id + "" || "unknown",
-          courseCode: id?.split("-")[1].toUpperCase() || "UNKNOWN",
-          sessionType: id?.split("-")[0].toUpperCase() || "UNKNOWN",
-          location: id?.split("_")[0].split("-")[2].toUpperCase() || "UNKNOWN",
+          sessionId: decodeURIComponent(id) + "" || "unknown",
+          courseCode: decodeURIComponent(id)?.split("-")[1].toUpperCase() || "UNKNOWN",
+          sessionType: decodeURIComponent(id)?.split("-")[0].toUpperCase() || "UNKNOWN",
+          location: decodeURIComponent(id)?.split("_")[0].split("-")[2].toUpperCase() || "UNKNOWN",
           sessionDate: new Date().toLocaleDateString("en-US", {
             weekday: "long",
             year: "numeric",
