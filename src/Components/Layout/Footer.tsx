@@ -6,7 +6,14 @@ export default function Footer() {
   return (
     <footer className=" py-2 ">
       <div className="max-w-4xl mx-auto px-4 text-center flex items-center justify-center gap-2">
-        <Image src="/One.svg" alt="One" width={50} height={50} />
+        <Image
+          src="/One.svg"
+          alt="One"
+          width={50}
+          height={50}
+          style={{ height: "auto" }}
+          priority
+        />
         <p className="text-sm P-0 M-0 text-muted-foreground">
           © {new Date().getFullYear()}. All rights reserved.
         </p>

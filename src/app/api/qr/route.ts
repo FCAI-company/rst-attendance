@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addRecord, readRecords, updateRecord } from "@/lib/instructor/qrinfo";
-import { decryptData } from "@/lib/cryptoUtils";
- 
+import path from "path";
+import dns from "dns";
+
+dns.setDefaultResultOrder("ipv4first");
 import nodemailer from "nodemailer";
 export async function GET() {
   const data = readRecords();
@@ -44,8 +46,8 @@ export async function POST(req: NextRequest) {
       </td>
 
       <td align="right">
-      <img src="cid:FCAIlogo" alt="FCAI Logo" style="height:50px;">
-      <img src="cid:universitylogo" alt="University Logo" style="height:50px;">
+      <img src="cid:FCAIlogo" alt="FCAI Logo"  width="80" height="80" style="height:50px;" >
+      <img src="cid:universitylogo" alt="University Logo" width="80" height="80" style="height:50px;" >
 
       </td>
 
@@ -128,7 +130,7 @@ export async function POST(req: NextRequest) {
       <!-- Footer -->
       <tr>
       <td style="background:#f9fafb;padding:25px 40px;text-align:center;font-size:13px;color:#6b7280;border-top:1px solid #e5e7eb;line-height:1.6;">
-      <img src="cid:companylogo" alt="Company Logo" style="height:45px;">
+      <img src="cid:companylogo" alt="Company Logo" style="height:45px;" >
       <br/>
       <strong>University Attendance System</strong><br>
       Automated Academic Notification Service<br><br>
@@ -151,13 +153,19 @@ export async function POST(req: NextRequest) {
       const transporter = nodemailer.createTransport({
         service: "gmail", // Example: Gmail SMTP
         // host: "smtp.office365.com",
-        // port: 587,
-        // secure: false,
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+
         auth: {
           user: "clarkwagdy1@gmail.com",
           pass: "gist xnnp fnaa xkha", // App password
         },
+        tls: {
+          rejectUnauthorized: false,
+        },
       });
+
 
       await transporter.sendMail({
         from: "clarkwagdy1@gmail.com",
@@ -173,17 +181,18 @@ export async function POST(req: NextRequest) {
         attachments: [
           {
             filename: "university-logo.png",
-            path: "./public/email-assets/university-logo.png", // path relative to project root
+
+            path: path.join(process.cwd(), "public/email-assets/university-logo.png"), // path relative to project root
             cid: "universitylogo", // must match src="cid:universitylogo"
           },
           {
             filename: "FCAI-logo.png",
-            path: "./public/email-assets/fcai2.png", // path relative to project root
+            path: path.join(process.cwd(), "public/email-assets/fcai2.png"), // path relative to project root
             cid: "FCAIlogo", // must match src="cid:FCAIlogo"
           },
           {
             filename: "company-logo.png",
-            path: "./public/email-assets/One.1.png", // path relative to project root
+            path: path.join(process.cwd(), "public/email-assets/One.1.png"), // path relative to project root
             cid: "companylogo", // must match src="cid:companylogo"
           },
         ],
