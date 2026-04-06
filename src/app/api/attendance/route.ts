@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getDB } from "@/lib/mongodb";
 // import { studentDT } from "@/lib/data/student";
-import dns from "dns";
-dns.setDefaultResultOrder("ipv4first");
+// import dns from "dns";
+// dns.setDefaultResultOrder("ipv4first");
 import students from "@/lib/data/students.json";
 export async function GET(request: Request) {
   try {
