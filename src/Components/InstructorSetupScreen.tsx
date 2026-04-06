@@ -25,6 +25,7 @@ import {
 import QRCode from "qrcode";
 import { ScheduleEntry } from "@/lib/data/schedule";
 import { getSchedule } from "@/lib/handle/getdata";
+import { getTkn } from "@/lib/gettkn";
 
 export function InstructorSetupScreen() {
   const [location, setLocation] = useState("");
@@ -33,6 +34,7 @@ export function InstructorSetupScreen() {
 const [error, seterror] = useState("");
   const [sessionType, setSessionType] = useState("");
   const [sessionGroup, setSessionGroup] = useState("");
+  const [sessionId, setsessionId] = useState("");
 
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -61,7 +63,7 @@ useEffect(() => {
       if (qrCodeUrl) {
         if (timeLeft <= 0) {
 
-          generateQRCode().then(() => {
+          generateanotherQRCode().then(() => {
             setTimeLeft(60);
           });
         }
@@ -89,6 +91,43 @@ const GenTkn = async() => {
   return `${sessionid.replace(/\s/g, "")}`;
 };
 
+const generateanotherQRCode = async () => {
+   setIsGenerating(true);
+  if (!location || !courseCode || !sessionType ||!sessionId) {
+    seterror("Please fill in all fields");
+    setIsGenerating(false);
+    return;
+  }
+
+     try {
+       const tkn = await GenTkn();
+       if (!isSend) {
+    
+            
+             const url = await QRCode.toDataURL(
+               `${window.location.origin}/checkin/${getTkn}_${sessionId}`,
+               {
+                 width: 300,
+                 margin: 2,
+                 color: {
+                   dark: "#2563eb",
+                   light: "#ffffff",
+                 },
+               },
+             );
+              setQrCodeUrl(url);
+             
+        
+       }
+     } catch (error) {
+       console.error("Error generating QR code:", error);
+       alert("Failed to generate QR code");
+     } finally {
+       setIsGenerating(false);
+     }
+  
+
+}
   const generateQRCode = async () => {
     // const ress = await fetch("/api/qr");
     // const datas = await ress.json();
@@ -132,7 +171,7 @@ if (!location || !courseCode || !sessionType) {
           })
             .then((res) => res.json())
             .then(async (data) => {
-              console.log("QR code data response:", data);
+              setsessionId(data.sessionId);
               const url = await QRCode.toDataURL(
                 `${window.location.origin}/checkin/${tkn}_${data.sessionId}`,
                 {

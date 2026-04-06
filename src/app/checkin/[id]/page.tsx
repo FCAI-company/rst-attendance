@@ -54,9 +54,9 @@ function secondsBetween(time1: string): number {
           alert("Geolocation not supported");
           return;
         }
-    if(!id){
-           return;
-    }
+        if(!id){
+              return;
+        }
         const sessionId = id.toString().split('_')[1] as string;
         let sec = secondsBetween(sessionId.toString());
        setSEC(sec);
@@ -74,7 +74,7 @@ function secondsBetween(time1: string): number {
         try {
           const data: CooldownData = JSON.parse(stored);
           const elapsed = Date.now() - data.timestamp;
-            console.log(elapsed );
+            
           if (elapsed < COOLDOWN_DURATION) {
            setIsSubmitted(true);
           } else {
