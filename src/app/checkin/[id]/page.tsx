@@ -7,8 +7,7 @@ import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { useParams } from "next/navigation";
 import QRScanner from "../QRScanner";
-import { getDeviceId } from "@/lib/device";
-
+ 
 interface CooldownData {
   timestamp: number;
   studentId: string;
@@ -115,7 +114,7 @@ function secondsBetween(time1: string): number {
         sessionId: id,
         lat,
         lng,
-        deviceId: getDeviceId(),
+     
       }),
     })
       .then((res) => res.json())
