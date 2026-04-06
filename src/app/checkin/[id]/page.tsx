@@ -20,7 +20,9 @@ export default function CheckinPage() {
 
     const { id } = useParams(); 
   
-  const [studentId, setStudentId] = useState("");
+  const [studentId, setStudentId] = useState(
+    localStorage.getItem(StudentId_KEY),
+  );
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [istimeout, setistimeout] = useState(false);
   const [SEC, setSEC] = useState(0);
@@ -89,7 +91,7 @@ function secondsBetween(time1: string): number {
   }, []);
   const handleSubmit = async () => {
 
-    if (!studentId.trim()) {
+    if (!studentId?.trim()) {
       alert("Please enter your Student ID");
       return;
     }
@@ -167,7 +169,7 @@ function secondsBetween(time1: string): number {
                 id="studentId"
                 type="text"
                 placeholder="e.g., 2024001"
-                value={studentId}
+                value={studentId?.trim() || ""}
                 onChange={(e) => setStudentId(e.target.value)}
                 className="h-12 bg-input-background border-border"
                 disabled={isSubmitted}
