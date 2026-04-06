@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addRecord, readRecords, updateRecord } from "@/lib/instructor/qrinfo";
 import path from "path";
-import dns from "dns";
 
-dns.setDefaultResultOrder("ipv4first");
 import nodemailer from "nodemailer";
 export async function GET() {
   const data = readRecords();
