@@ -7,6 +7,7 @@ import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { useParams } from "next/navigation";
 import QRScanner from "../QRScanner";
+import { getDeviceId } from "@/lib/device";
 
 interface CooldownData {
   timestamp: number;
@@ -109,17 +110,25 @@ function secondsBetween(time1: string): number {
     fetch("/api/attendance", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentId, sessionId: id ,  lat, lng }),
-    }).then((res) => res.json())
+      body: JSON.stringify({
+        studentId,
+        sessionId: id,
+        lat,
+        lng,
+        deviceId: getDeviceId(),
+      }),
+    })
+      .then((res) => res.json())
       .then((data) => {
-        if (data.success) { 
-         
+        if (data.success) {
           localStorage.setItem(StudentId_KEY, studentId);
-          startCooldown(studentId);             
-
-        }}
-      ).catch(() => {
-        console.log("An error occurred while submitting attendance. Please try again.");
+          startCooldown(studentId);
+        }
+      })
+      .catch(() => {
+        console.log(
+          "An error occurred while submitting attendance. Please try again.",
+        );
       });
       setIsSubmitted(false);
       setStudentId("");
