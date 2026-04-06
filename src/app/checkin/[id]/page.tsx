@@ -20,9 +20,7 @@ export default function CheckinPage() {
 
     const { id } = useParams(); 
   
-  const [studentId, setStudentId] = useState(
-    localStorage.getItem(StudentId_KEY),
-  );
+  const [studentId, setStudentId] = useState<string>();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [istimeout, setistimeout] = useState(false);
   const [SEC, setSEC] = useState(0);
@@ -113,7 +111,7 @@ function secondsBetween(time1: string): number {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         studentId,
-        sessionId: id,
+        sessionId: id+"".split('_')[2],
         lat,
         lng,
      

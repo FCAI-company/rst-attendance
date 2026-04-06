@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addRecord, readRecords, updateRecord } from "@/lib/instructor/qrinfo";
 import path from "path";
+import {getDB} from "@/lib/mongodb"; // MongoDB client
 
 import nodemailer from "nodemailer";
 export async function GET() {
@@ -9,13 +10,28 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-      const date = new Date();
-
   try {
+    const date = new Date();
     const { Instructor, location, courseCode, sessionType, tkn } =
       await req.json();
-      const url=process.env.URL + '/students/' + tkn;
-      const html = `
+
+    // 1️⃣ Insert session into MongoDB
+      const db = await getDB();
+
+    const sessionDoc = {
+      Instructor,
+      location,
+      courseCode,
+      sessionType,
+      tkn,
+      createdAt: date,
+    };
+      const result = await db.collection("sessions").insertOne(sessionDoc);
+      const sessionId = result.insertedId.toString();
+
+
+    const url = process.env.URL + "/students/" + sessionId;
+    const html = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -136,86 +152,63 @@ export async function POST(req: NextRequest) {
       </body>
       </html>
         `.trim();
-   
-  
-   
-      // const { to, subject, text } = await req.json();
+    // const { to, subject, text } = await req.json();
 
-      const transporter = nodemailer.createTransport({
-        service: "gmail", // Example: Gmail SMTP
-        // host: "smtp.office365.com",
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
+    const transporter = nodemailer.createTransport({
+      service: "gmail", // Example: Gmail SMTP
+      // host: "smtp.office365.com",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
 
-        auth: {
-          user: "clarkwagdy1@gmail.com",
-          pass: "gist xnnp fnaa xkha", // App password
+      auth: {
+        user: "clarkwagdy1@gmail.com",
+        pass: "gist xnnp fnaa xkha", // App password
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    await transporter.sendMail({
+      from: "clarkwagdy1@gmail.com",
+      to: "clark.wagdy@rst.edu.eg",
+      subject: `Attendance Notification for ${courseCode} - ${sessionType}- ${date.toLocaleString(
+        "en-US",
+        {
+          timeZone: "Africa/Cairo",
         },
-        tls: {
-          rejectUnauthorized: false,
+      )}`,
+
+      html,
+      attachments: [
+        {
+          filename: "university-logo.png",
+
+          path: path.join(
+            process.cwd(),
+            "public/email-assets/university-logo.png",
+          ), // path relative to project root
+          cid: "universitylogo", // must match src="cid:universitylogo"
         },
-      });
+        {
+          filename: "FCAI-logo.png",
+          path: path.join(process.cwd(), "public/email-assets/fcai2.png"), // path relative to project root
+          cid: "FCAIlogo", // must match src="cid:FCAIlogo"
+        },
+        {
+          filename: "company-logo.png",
+          path: path.join(process.cwd(), "public/email-assets/One.1.png"), // path relative to project root
+          cid: "companylogo", // must match src="cid:companylogo"
+        },
+      ],
+    });
 
-
-      await transporter.sendMail({
-        from: "clarkwagdy1@gmail.com",
-        to: "clark.wagdy@rst.edu.eg",
-        subject: `Attendance Notification for ${courseCode} - ${sessionType}- ${date.toLocaleString(
-          "en-US",
-          {
-            timeZone: "Africa/Cairo",
-          },
-        )}`,
-
-        html,
-        attachments: [
-          {
-            filename: "university-logo.png",
-
-            path: path.join(process.cwd(), "public/email-assets/university-logo.png"), // path relative to project root
-            cid: "universitylogo", // must match src="cid:universitylogo"
-          },
-          {
-            filename: "FCAI-logo.png",
-            path: path.join(process.cwd(), "public/email-assets/fcai2.png"), // path relative to project root
-            cid: "FCAIlogo", // must match src="cid:FCAIlogo"
-          },
-          {
-            filename: "company-logo.png",
-            path: path.join(process.cwd(), "public/email-assets/One.1.png"), // path relative to project root
-            cid: "companylogo", // must match src="cid:companylogo"
-          },
-        ],
-      });
-
-      return NextResponse.json({ message: "Email sent successfully" });
-    
-  
-  
-  
-  // Create transporter
-    // const transporter = nodemailer.createTransport({
-    //   host: "rst.edu.eg", // Example: Gmail SMTP
-    //   port: 465,
-    //   secure: true,
-    //   auth: {
-    //     user: "clark.wagdy@rst.edu.eg", // Your email
-    //     pass: "C030223Ma#", // App password
-    //   },
-    // });
-
-    // Send email
-    // await transporter.sendMail({
-    //   from: process.env.EMAIL_USER,
-    //   to,
-    //   subject,
-    //   text,
-    //   html,
-    // });
-
-    // return NextResponse.json({ success: true });
-  } catch (error) {
+  return NextResponse.json({
+    success: true,
+    sessionId,
+  })
+ } catch (error) {
     console.error(error);
     return NextResponse.json({ success: false, error: "Failed to send email" });
   }

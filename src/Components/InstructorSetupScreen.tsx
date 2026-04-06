@@ -118,33 +118,38 @@ if (!location || !courseCode || !sessionType) {
     }
     try {
       const tkn=await GenTkn();
-      console.log(`${window.location.origin}/checkin/${tkn}`);
          if (!isSend) {
-           await fetch("/api/qr", {
-             method: "post",
-             body: JSON.stringify({
-               location,
-               courseCode,
-               Instructor,
-               sessionType,
-               tkn
-             }),
-             //  body: JSON.stringify(`${sessionid.replace(/\s/g, "")}`),
-           }).then(() => setIssend(true));
+          fetch("/api/qr", {
+            method: "post",
+            body: JSON.stringify({
+              location,
+              courseCode,
+              Instructor,
+              sessionType,
+
+              tkn,
+            }),
+          })
+            .then((res) => res.json())
+            .then(async (data) => {
+              console.log("QR code data response:", data);
+              const url = await QRCode.toDataURL(
+                `${window.location.origin}/checkin/${tkn}_${data.sessionId}`,
+                {
+                  width: 300,
+                  margin: 2,
+                  color: {
+                    dark: "#2563eb",
+                    light: "#ffffff",
+                  },
+                },
+              );
+              localStorage.setItem("location", location);
+              setQrCodeUrl(url);
+              setIssend(true);
+            });
          }
-      const url = await QRCode.toDataURL(
-        `${window.location.origin}/checkin/${tkn}`,
-        {
-          width: 300,
-          margin: 2,
-          color: {
-            dark: "#2563eb",
-            light: "#ffffff",
-          },
-        },
-      );
-      localStorage.setItem("location", location);
-      setQrCodeUrl(url);
+   
     } catch (error) {
       console.error("Error generating QR code:", error);
       alert("Failed to generate QR code");

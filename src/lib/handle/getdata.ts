@@ -20,8 +20,8 @@ export function getSchedule(): ScheduleEntry[] | string {
 
   const currentDay = now.toLocaleDateString("en-US", { weekday: "long" });
  // ("09:00:00");
-  
-  const currentTime = now.toTimeString().slice(0, 8); // HH:MM:SS
+  //now.toTimeString().slice(0, 8)
+  const currentTime = "09:00:00"; // HH:MM:SS
   const currentClass = schedule.filter((item) => {
     return (
       item.Day === currentDay &&
