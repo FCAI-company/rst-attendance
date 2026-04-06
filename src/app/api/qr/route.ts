@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       const sessionId = result.insertedId.toString();
 
 
-    const url = process.env.URL + "/students/" + sessionId;
+    const url = process.env.URL + "/students/" + tkn+"_"+sessionId;
     const html = `
       <!DOCTYPE html>
       <html>
