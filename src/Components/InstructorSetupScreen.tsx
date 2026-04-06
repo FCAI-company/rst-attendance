@@ -105,7 +105,7 @@ const generateanotherQRCode = async () => {
     
             
              const url = await QRCode.toDataURL(
-               `${window.location.origin}/checkin/${getTkn}_${sessionId}`,
+               `${window.location.origin}/checkin/${tkn}_${sessionId}`,
                {
                  width: 300,
                  margin: 2,
