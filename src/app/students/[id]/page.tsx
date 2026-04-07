@@ -9,10 +9,12 @@ import {
   Clock,
   FileSpreadsheet,
   Calendar,
+  TouchpadIcon,
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import * as XLSX from "xlsx";
+// import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 
 interface AttendanceRecord {
   _id: string;
@@ -27,9 +29,11 @@ interface SessionInfo {
   sessionId: string;
   courseCode: string;
   sessionType: string;
+  Instructor: string;
   location: string;
   sessionDate: string;
-  totalStudents: number;
+  sessionGroup?: string;
+   totalStudents: number;
 }
 
 export default function AttendanceReportScreen() {
@@ -48,26 +52,35 @@ export default function AttendanceReportScreen() {
 
        
       // Mock data - replace with actual API call
-        const mockSessionInfo: SessionInfo = {
-          sessionId: decodeURIComponent(id) + "" || "unknown",
-          courseCode: decodeURIComponent(id)?.split("-")[1].toUpperCase() || "UNKNOWN",
-          sessionType: decodeURIComponent(id)?.split("-")[0].toUpperCase() || "UNKNOWN",
-          location: decodeURIComponent(id)?.split("_")[0].split("-")[2].toUpperCase() || "UNKNOWN",
-          sessionDate: new Date().toLocaleDateString("en-US", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          }),
-          totalStudents: 0,
-        };
+        // const mockSessionInfo: SessionInfo = {
+        //   sessionId: decodeURIComponent(id) + "" || "unknown",
+        //   courseCode: decodeURIComponent(id)?.split("-")[1].toUpperCase() || "UNKNOWN",
+        //   sessionType: decodeURIComponent(id)?.split("-")[0].toUpperCase() || "UNKNOWN",
+        //   location: decodeURIComponent(id)?.split("_")[0].split("-")[2].toUpperCase() || "UNKNOWN",
+        //   sessionDate: new Date().toLocaleDateString("en-US", {
+        //     weekday: "long",
+        //     year: "numeric",
+        //     month: "long",
+        //     day: "numeric",
+        //   }),
+        //   totalStudents: 0,
+        // };
         fetch(`/api/attendance?sessionId=${id.toString().split('_')[2]}`)
           .then((res) => res.json())
           .then((data) => {
             console.log("Fetched attendance data:", data);
-             mockSessionInfo.totalStudents = data.data.length;
+            //  mockSessionInfo.totalStudents = data.data.length;
+              data.session.totalStudents = data.data.length;
+              data.session.sessionDate = new Date(
+                data.session.createdAt
+              ).toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              });
 
-             setSessionInfo(mockSessionInfo);
+             setSessionInfo(data.session);
              setAttendanceRecords(data.data);
              setIsLoading(false);
           })
@@ -82,53 +95,177 @@ export default function AttendanceReportScreen() {
     
   }, [id]);
 
-  const downloadExcel = () => {
-    if (!attendanceRecords.length || !sessionInfo) return;
+  // const downloadExcel = () => {
+  //   if (!attendanceRecords.length || !sessionInfo) return;
 
-    // Prepare data for Excel
-    const excelData = attendanceRecords.map((record, index) => ({
-      "No.": index + 1,
-      "Student ID": record.studentId,
-      "Student Name": record.studentName,
-      Location: record.location,
-      "Check-in Time": record.timestamp,
-      "Full Timestamp": record.timestamp.toLocaleString(),
-    }));
+  //   // Prepare data for Excel
+  //   const excelData = attendanceRecords.map((record, index) => ({
+  //     "No.": index + 1,
+  //     "Student ID": record.studentId,
+  //     "Student Name": record.studentName,
+  //     Location: record.location,
+  //     "Check-in Time": record.timestamp,
+  //     "Full Timestamp": record.timestamp.toLocaleString(),
+  //   }));
 
-    // Create worksheet
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
+  //   // Create worksheet
+  //   const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-    // Set column widths
-    worksheet["!cols"] = [
-      { wch: 5 }, // No.
-      { wch: 12 }, // Student ID
-      { wch: 20 }, // Student Name
-      { wch: 25 }, // Location
-      { wch: 15 }, // Check-in Time
-      { wch: 25 }, // Full Timestamp
+  //   // Set column widths
+  //   worksheet["!cols"] = [
+  //     { wch: 5 }, // No.
+  //     { wch: 12 }, // Student ID
+  //     { wch: 20 }, // Student Name
+  //     { wch: 25 }, // Location
+  //     { wch: 15 }, // Check-in Time
+  //     { wch: 25 }, // Full Timestamp
+  //   ];
+
+  //   // Create workbook
+  //   const workbook = XLSX.utils.book_new();
+  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+
+  //   // Add session info as a second sheet
+  //   const sessionSheet = XLSX.utils.json_to_sheet([
+  //     { Field: "Session ID", Value: sessionInfo.sessionId },
+  //     { Field: "Course Code", Value: sessionInfo.courseCode },
+  //     { Field: "Session Type", Value: sessionInfo.sessionType },
+  //     { Field: "Location", Value: sessionInfo.location },
+  //     { Field: "Date", Value: sessionInfo.sessionDate },
+  //     { Field: "Total Students", Value: sessionInfo.totalStudents },
+  //   ]);
+  //   XLSX.utils.book_append_sheet(workbook, sessionSheet, "Session Info");
+
+  //   // Generate filename
+  //   const filename = `Attendance_${sessionInfo.courseCode}_${sessionInfo.sessionId}_${new Date().toISOString().split("T")[0]}.xlsx`;
+
+  //   // Download
+  //   XLSX.writeFile(workbook, filename);
+  // };
+
+
+ 
+
+const downloadExcel = () => {
+  if (!attendanceRecords.length || !sessionInfo) return;
+
+  const headerStyle = {
+    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 14 },
+    fill: { fgColor: { rgb: "4F81BD" } }, // blue
+    alignment: { horizontal: "center", vertical: "center" },
+  };
+
+  const subHeaderStyle = {
+    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
+    fill: { fgColor: { rgb: "4F81BD" } },
+    alignment: { horizontal: "center", vertical: "center" },
+  };
+
+  const tableHeaderStyle = {
+    font: { bold: true },
+    fill: { fgColor: { rgb: "D9E1F2" } },
+    alignment: { horizontal: "center" },
+    border: {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+    },
+  };
+
+  const centerStyle = {
+    alignment: { horizontal: "center" },
+  };
+
+  // Build worksheet manually
+  const ws: XLSX.WorkSheet = {} as XLSX.WorkSheet;
+
+  // ✅ Top Header Row
+  ws["A1"] = { v: `Course: ${sessionInfo.courseCode}`, s: headerStyle };
+  ws["D1"] = { v: `${sessionInfo.Instructor || "N/A"}`, s: headerStyle };
+
+  // ✅ Second Row
+  ws["A2"] = {
+    v: `Group: ${sessionInfo.sessionGroup}`,
+    s: subHeaderStyle,
+  };
+  ws["D2"] = {
+    v: `Date: ${new Date(sessionInfo.sessionDate).toLocaleDateString()}`,
+    s: subHeaderStyle,
+  };
+
+  // Merge cells
+  ws["!merges"] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }, // A1:C1
+    { s: { r: 0, c: 3 }, e: { r: 0, c: 5 } }, // D1:F1
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 2 } }, // A2:C2
+    { s: { r: 1, c: 3 }, e: { r: 1, c: 5 } }, // D2:F2
+  ];
+
+  // ✅ Table Headers
+  const headers = [
+    "No.",
+    "Student ID",
+    "Student Name",
+    "Location",
+    "Check-in Time",
+    "Full Timestamp",
+  ];
+
+  headers.forEach((h, i) => {
+    const cell = XLSX.utils.encode_cell({ r: 2, c: i });
+    ws[cell] = { v: h, s: tableHeaderStyle };
+  });
+
+  // ✅ Data Rows
+  attendanceRecords.forEach((rec, index) => {
+    const row = index + 3;
+
+    const values = [
+      index + 1,
+      rec.studentId,
+      rec.studentName,
+      rec.location,
+      new Date(rec.timestamp).toLocaleTimeString(),
+      new Date(rec.timestamp).toLocaleString(),
     ];
 
-    // Create workbook
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+    values.forEach((val, col) => {
+      const cell = XLSX.utils.encode_cell({ r: row, c: col });
+      ws[cell] = { v: val, s: centerStyle };
+    });
+  });
 
-    // Add session info as a second sheet
-    const sessionSheet = XLSX.utils.json_to_sheet([
-      { Field: "Session ID", Value: sessionInfo.sessionId },
-      { Field: "Course Code", Value: sessionInfo.courseCode },
-      { Field: "Session Type", Value: sessionInfo.sessionType },
-      { Field: "Location", Value: sessionInfo.location },
-      { Field: "Date", Value: sessionInfo.sessionDate },
-      { Field: "Total Students", Value: sessionInfo.totalStudents },
-    ]);
-    XLSX.utils.book_append_sheet(workbook, sessionSheet, "Session Info");
+  // Column widths
+  ws["!cols"] = [
+    { wch: 5 },
+    { wch: 15 },
+    { wch: 30 },
+    { wch: 25 },
+    { wch: 18 },
+    { wch: 28 },
+  ];
 
-    // Generate filename
-    const filename = `Attendance_${sessionInfo.courseCode}_${sessionInfo.sessionId}_${new Date().toISOString().split("T")[0]}.xlsx`;
+  // Define range
+  ws["!ref"] = XLSX.utils.encode_range({
+    s: { r: 0, c: 0 },
+    e: { r: attendanceRecords.length + 4, c: 5 },
+  });
 
-    // Download
-    XLSX.writeFile(workbook, filename);
-  };
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+  XLSX.writeFile(
+    wb,
+    `${sessionInfo.courseCode}_${sessionInfo.sessionGroup}_${sessionInfo.sessionDate}.xlsx`,
+  );
+};
+
+
+
+
+
+
+
 
   if (isLoading) {
     return (
@@ -199,12 +336,21 @@ export default function AttendanceReportScreen() {
                   {sessionInfo.sessionDate}
                 </p>
               </div>
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-purple-600 mb-1">
-                  <Calendar className="w-4 h-4" />
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-red-600 mb-1">
+                  <Users className="w-4 h-4" />
+                  <span className="text-sm font-medium">Group</span>
+                </div>
+                <p className="text-lg font-bold text-red-900">
+                  {sessionInfo.sessionGroup}
+                </p>
+              </div>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-yellow-600 mb-1">
+                  <TouchpadIcon className="w-4 h-4" />
                   <span className="text-sm font-medium">Session Type</span>
                 </div>
-                <p className="text-lg font-bold text-purple-900">
+                <p className="text-lg font-bold text-yellow-900">
                   {sessionInfo.sessionType}
                 </p>
               </div>
