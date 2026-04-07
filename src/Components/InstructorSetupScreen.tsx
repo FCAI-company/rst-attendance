@@ -185,7 +185,6 @@ const generateanotherQRCode = async () => {
     setQrCodeUrl("");
     setTimeLeft(60);
     setIssend(false);
-    
   };
 
 const handleChange = (hall: string, schedules: ScheduleEntry[]) => {
