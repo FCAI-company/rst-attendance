@@ -129,32 +129,12 @@ const generateanotherQRCode = async () => {
 
 }
   const generateQRCode = async () => {
-    // const ress = await fetch("/api/qr");
-    // const datas = await ress.json();
-      
- 
-
-    // if (!location || !courseCode || !sessionType) {
-    //   alert("Please fill in all fields");
-    //   return;
-    // }
-
-
- 
-
     setIsGenerating(true);
-
-    // const attendanceData = JSON.stringify({
-    //   location,
-    //   courseCode,
-    //   sessionType,
-    //   timestamp: new Date().toISOString(),
-    // });
-if (!location || !courseCode || !sessionType) {
-      seterror("Please fill in all fields");
-      setIsGenerating(false);
-      return;
-    }
+    if (!location || !courseCode || !sessionType) {
+          seterror("Please fill in all fields");
+          setIsGenerating(false);
+          return;
+        }
     try {
       const tkn=await GenTkn();
          if (!isSend) {
