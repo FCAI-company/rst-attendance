@@ -59,12 +59,27 @@ function secondsBetween(time1: string): number {
         if(!id){
               return;
         }
-        const sessionId = id.toString().split('_')[1] as string;
-        let sec = secondsBetween(sessionId.toString());
-       setSEC(sec);
-        if (sec >= 60) {
-          setistimeout(true);
-        }
+        const sessionId = id.toString().split('_')[2] as string;
+        const tokn = id.toString().split("_")[0]+"_"+id.toString().split("_")[1] as string;
+     
+fetch(`/api/qr/${sessionId}`)
+.then((res) => res.json())
+.then((data) => {
+  if (data.success) {
+    console.log("Session data:", data.data.tkn,tokn);
+    if (data.data.tkn != tokn) {
+    setistimeout(true);
+    } else {
+      setistimeout(false);
+    }
+   }
+  })
+    .catch(() => {
+  console.log("Failed to fetch session data");
+});
+
+
+       
 
       const stored = localStorage.getItem(STORAGE_KEY);
       const storedStudentId = localStorage.getItem(StudentId_KEY);
@@ -110,7 +125,7 @@ function secondsBetween(time1: string): number {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        storedStudentId,
+        studentId:storedStudentId,
         sessionId: id,
         lat,
         lng,
@@ -121,6 +136,7 @@ function secondsBetween(time1: string): number {
         if (data.success) {
           localStorage.setItem(StudentId_KEY, storedStudentId);
           startCooldown(storedStudentId);
+          setmessage("");
         }
       })
       .catch(() => {
@@ -169,6 +185,7 @@ function secondsBetween(time1: string): number {
                 className="h-12 bg-input-background border-border"
                 disabled={isSubmitted}
               />
+              <p className="text-sm text-red-600">{message}</p>
             </div>
 
             <Button
