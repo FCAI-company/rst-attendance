@@ -111,7 +111,7 @@ function secondsBetween(time1: string): number {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         studentId,
-        sessionId: id+"".split('_')[2],
+        sessionId: id,
         lat,
         lng,
      

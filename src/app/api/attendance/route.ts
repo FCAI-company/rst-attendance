@@ -9,13 +9,10 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get("sessionId");
-
     if (!sessionId) {
       return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
     }
-
     const db = await getDB();
-
     const data = await db
       .collection("attendance")
       .find({ sessionId })
@@ -42,7 +39,7 @@ export async function POST(request: Request) {
       lng: number;
 
     };
-    console.log("Received attendance POST:", { studentId, sessionId, lat, lng });
+
     if (!studentId || !sessionId) {
       return NextResponse.json(
         { error: "Missing studentId or sessionId" },
@@ -58,7 +55,7 @@ export async function POST(request: Request) {
       studentId,
       lat,
       lng,
-      sessionId,
+      sessionId : sessionId.split("_")[2],
       timestamp: date.toLocaleString("en-US", {
         timeZone: "Africa/Cairo",
       }),
