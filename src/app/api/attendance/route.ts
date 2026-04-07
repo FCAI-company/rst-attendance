@@ -33,13 +33,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     type StudentKeys = keyof typeof students;
-    const { studentId, sessionId, lat, lng } = (await request.json()) as {
-      studentId: StudentKeys;
-      sessionId: string;
-      lat: number;
-      lng: number;
-
-    };
+    const { studentId, sessionId, lat, lng, location } =
+      (await request.json()) as {
+        studentId: StudentKeys;
+        sessionId: string;
+        lat: number;
+        lng: number;
+        location: string;
+      };
 
     if (!studentId || !sessionId) {
       return NextResponse.json(
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
       studentId,
       lat,
       lng,
+      location,
       sessionId : sessionId.split("_")[2],
       timestamp: date.toLocaleString("en-US", {
         timeZone: "Africa/Cairo",

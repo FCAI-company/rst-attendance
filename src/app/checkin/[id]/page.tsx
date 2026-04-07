@@ -109,16 +109,24 @@ fetch(`/api/qr/${sessionId}`)
       setmessage("Please enter your Student ID");
       return;
     }
-    var lat, lng;
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
      
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+     
+
+         const res = await fetch(
+           `https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json&addressdetails=1`,
+         );
+         const data = await res.json();
+       
+          
            fetch("/api/attendance", {
              method: "POST",
              headers: { "Content-Type": "application/json" },
              body: JSON.stringify({
                studentId: storedStudentId,
                sessionId: id,
+               location: data.display_name,
               lat : position.coords.latitude,
                lng : position.coords.longitude
              }),
