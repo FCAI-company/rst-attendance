@@ -23,6 +23,8 @@ export default function CheckinPage() {
   const [studentId, setStudentId] = useState<string>();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [istimeout, setistimeout] = useState(false);
+  const [message, setmessage] = useState("");
+
   const [SEC, setSEC] = useState(0);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null,
@@ -68,7 +70,7 @@ function secondsBetween(time1: string): number {
       const storedStudentId = localStorage.getItem(StudentId_KEY);
       if (storedStudentId) {
         setStudentId(storedStudentId);
-        handleSubmit();
+        handleSubmit(storedStudentId);
       }
       if (stored) {
         try {
@@ -87,20 +89,18 @@ function secondsBetween(time1: string): number {
         }
       }
   }, []);
-  const handleSubmit = async () => {
-
-    if (!studentId?.trim()) {
-      alert("Please enter your Student ID");
+  const handleSubmit = async (storedStudentId?:string) => {
+    if (!storedStudentId?.trim()) {
+      setmessage("Please enter your Student ID");
       return;
     }
-
-    let lat,lng;
-     navigator.geolocation.getCurrentPosition(
+    let lat, lng;
+    navigator.geolocation.getCurrentPosition(
       (position) => {
-        
-          lat=position.coords.latitude
-          lng= position.coords.longitude
-        
+        console.log("Latitude:", position.coords.latitude);
+        console.log("Longitude:", position.coords.longitude);
+        lat = position.coords.latitude;
+        lng = position.coords.longitude;
       },
       (error) => {
         console.error(error);
@@ -110,18 +110,17 @@ function secondsBetween(time1: string): number {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        studentId,
+        storedStudentId,
         sessionId: id,
         lat,
         lng,
-     
       }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
-          localStorage.setItem(StudentId_KEY, studentId);
-          startCooldown(studentId);
+          localStorage.setItem(StudentId_KEY, storedStudentId);
+          startCooldown(storedStudentId);
         }
       })
       .catch(() => {
@@ -129,10 +128,8 @@ function secondsBetween(time1: string): number {
           "An error occurred while submitting attendance. Please try again.",
         );
       });
-      setIsSubmitted(false);
-      setStudentId("");
-  
-
+    setIsSubmitted(false);
+    setStudentId("");
   };
 
 
@@ -175,7 +172,7 @@ function secondsBetween(time1: string): number {
             </div>
 
             <Button
-              onClick={handleSubmit}
+              onClick={()=>handleSubmit(studentId || "")}
               className="w-full h-14 text-lg"
               disabled={isSubmitted}
             >
