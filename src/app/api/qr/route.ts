@@ -1,12 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addRecord, readRecords, updateRecord } from "@/lib/instructor/qrinfo";
 import path from "path";
-import {getDB} from "@/lib/mongodb"; // MongoDB client
+import { getDB } from "@/lib/mongodb"; // MongoDB client
+import { ObjectId } from "mongodb";
 
 import nodemailer from "nodemailer";
-export async function GET() {
-  const data = readRecords();
-  return NextResponse.json(data);
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const { id } = params;
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: "Session ID is required" },
+        { status: 400 },
+      );
+    }
+
+    const db = await getDB();
+
+    const session = await db
+      .collection("sessions")
+      .findOne({ _id: new ObjectId(id) });
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: "Session not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: session,
+    });
+  } catch (error) {
+    console.error("GET session error:", error);
+
+    return NextResponse.json(
+      { success: false, error: "Invalid session ID or server error" },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -16,7 +53,7 @@ export async function POST(req: NextRequest) {
       await req.json();
 
     // 1️⃣ Insert session into MongoDB
-      const db = await getDB();
+    const db = await getDB();
 
     const sessionDoc = {
       Instructor,
@@ -26,11 +63,10 @@ export async function POST(req: NextRequest) {
       tkn,
       createdAt: date,
     };
-      const result = await db.collection("sessions").insertOne(sessionDoc);
-      const sessionId = result.insertedId.toString();
+    const result = await db.collection("sessions").insertOne(sessionDoc);
+    const sessionId = result.insertedId.toString();
 
-
-    const url = process.env.URL + "/students/" + tkn+"_"+sessionId;
+    const url = process.env.URL + "/students/" + tkn + "_" + sessionId;
     const html = `
       <!DOCTYPE html>
       <html>
@@ -204,20 +240,55 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-  return NextResponse.json({
-    success: true,
-    sessionId,
-  })
- } catch (error) {
+    return NextResponse.json({
+      success: true,
+      sessionId,
+    });
+  } catch (error) {
     console.error(error);
     return NextResponse.json({ success: false, error: "Failed to send email" });
   }
 }
 
 export async function PUT(req: Request) {
-  const body = await req.json();
-  console.log("PUT body:", body);
- 
-  updateRecord(body.split("_")[0], body.split("_")[1]);
-  return NextResponse.json({ success: true });
+  try {
+    const { sessionId, tkn } = await req.json();
+
+    if (!sessionId || !tkn) {
+      return NextResponse.json(
+        { success: false, error: "sessionId and tkn are required" },
+        { status: 400 },
+      );
+    }
+
+    const db = await getDB();
+
+    const result = await db.collection("sessions").updateOne(
+      { _id: new ObjectId(sessionId) },
+      {
+        $set: {
+          tkn,
+          updatedAt: new Date(),
+        },
+      },
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json(
+        { success: false, error: "Session not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Token updated successfully",
+    });
+  } catch (error) {
+    console.error("PUT error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to update token" },
+      { status: 500 },
+    );
+  }
 }

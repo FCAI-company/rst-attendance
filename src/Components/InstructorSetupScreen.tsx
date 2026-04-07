@@ -100,25 +100,30 @@ const generateanotherQRCode = async () => {
   }
 
      try {
-    
-             console.log("Generating new token for session:", sessionId);
              const tkn = await GenTkn();
-             console.log("Generated new token:", tkn);
-             const url = await QRCode.toDataURL(
-               `${window.location.origin}/checkin/${tkn}_${sessionId}`,
-               {
-                 width: 300,
-                 margin: 2,
-                 color: {
-                   dark: "#2563eb",
-                   light: "#ffffff",
-                 },
-               },
-             );
-              setQrCodeUrl(url);
-             
-        
-      
+
+   fetch("/api/qr", {
+            method: "PUT",
+            body: JSON.stringify({
+             sessionId,
+              tkn,
+            }),
+          })
+            .then((res) => res.json())
+            .then(async (data) => {
+                const url = await QRCode.toDataURL(
+                  `${window.location.origin}/checkin/${tkn}_${sessionId}`,
+                  {
+                    width: 300,
+                    margin: 2,
+                    color: {
+                      dark: "#2563eb",
+                      light: "#ffffff",
+                    },
+                  },
+                );
+                setQrCodeUrl(url);
+            });
      } catch (error) {
        console.error("Error generating QR code:", error);
        alert("Failed to generate QR code");
@@ -145,7 +150,7 @@ const generateanotherQRCode = async () => {
               courseCode,
               Instructor,
               sessionType,
-
+              sessionGroup,
               tkn,
             }),
           })

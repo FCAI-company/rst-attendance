@@ -4,6 +4,7 @@ import { getDB } from "@/lib/mongodb";
 // import dns from "dns";
 // dns.setDefaultResultOrder("ipv4first");
 import students from "@/lib/data/students.json";
+import { ObjectId } from "mongodb";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -16,8 +17,11 @@ export async function GET(request: Request) {
       .collection("attendance")
       .find({ sessionId })
       .toArray();
-
-    return NextResponse.json({ success: true, data });
+    const session = await db
+      .collection("sessions")
+      .findOne({ _id: new ObjectId(sessionId) });
+      
+    return NextResponse.json({ success: true, data, session });
   } catch (error: any) {
     console.error("Error fetching attendance:", error);
     return NextResponse.json(

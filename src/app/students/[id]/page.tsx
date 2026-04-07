@@ -38,16 +38,16 @@ export default function AttendanceReportScreen() {
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([]);
+  const[group,setGroup] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Simulate fetching data from database/API
     // In production, you would fetch this from your backend using the reportId
-   
       setIsLoading(true);
 
+       
       // Mock data - replace with actual API call
-    
         const mockSessionInfo: SessionInfo = {
           sessionId: decodeURIComponent(id) + "" || "unknown",
           courseCode: decodeURIComponent(id)?.split("-")[1].toUpperCase() || "UNKNOWN",
@@ -168,7 +168,7 @@ export default function AttendanceReportScreen() {
               <h1 className="text-primary mb-1">Attendance Report</h1>
               <p className="text-muted-foreground">
                 {sessionInfo.courseCode}
-                 {/* - {sessionInfo.sessionType} */}
+                {/* - {sessionInfo.sessionType} */}
               </p>
             </div>
             <CardTitle className="flex items-center gap-2">
@@ -190,7 +190,15 @@ export default function AttendanceReportScreen() {
                   {sessionInfo.courseCode}
                 </p>
               </div>
-
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-purple-600 mb-1">
+                  <Calendar className="w-4 h-4" />
+                  <span className="text-sm font-medium">Date</span>
+                </div>
+                <p className="text-lg font-bold text-purple-900">
+                  {sessionInfo.sessionDate}
+                </p>
+              </div>
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 text-purple-600 mb-1">
                   <Calendar className="w-4 h-4" />
