@@ -88,7 +88,7 @@ const GenTkn = async() => {
        Date.now();
       //  const tkn = crypto.randomBytes(16).toString("hex");
  
-  return `${sessionid.replace(/\s/g, "")}`;
+  return `${sessionid.replace(/\s/g, "").replace('.',"")}`;
 };
 
 const generateanotherQRCode = async () => {
@@ -100,10 +100,10 @@ const generateanotherQRCode = async () => {
   }
 
      try {
-       const tkn = await GenTkn();
-       if (!isSend) {
     
-            
+             console.log("Generating new token for session:", sessionId);
+             const tkn = await GenTkn();
+             console.log("Generated new token:", tkn);
              const url = await QRCode.toDataURL(
                `${window.location.origin}/checkin/${tkn}_${sessionId}`,
                {
@@ -118,7 +118,7 @@ const generateanotherQRCode = async () => {
               setQrCodeUrl(url);
              
         
-       }
+      
      } catch (error) {
        console.error("Error generating QR code:", error);
        alert("Failed to generate QR code");
