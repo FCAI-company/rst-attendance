@@ -109,41 +109,40 @@ fetch(`/api/qr/${sessionId}`)
       setmessage("Please enter your Student ID");
       return;
     }
-    let lat, lng;
+    var lat, lng;
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log("Latitude:", position.coords.latitude);
-        console.log("Longitude:", position.coords.longitude);
-        lat = position.coords.latitude;
-        lng = position.coords.longitude;
+     
+           fetch("/api/attendance", {
+             method: "POST",
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify({
+               studentId: storedStudentId,
+               sessionId: id,
+              lat : position.coords.latitude,
+               lng : position.coords.longitude
+             }),
+           })
+             .then((res) => res.json())
+             .then((data) => {
+               if (data.success) {
+                 localStorage.setItem(StudentId_KEY, storedStudentId);
+                 startCooldown(storedStudentId);
+                 setmessage("");
+               }
+             })
+             .catch(() => {
+               console.log(
+                 "An error occurred while submitting attendance. Please try again.",
+               );
+             });
+   
       },
       (error) => {
         console.error(error);
       },
     );
-    fetch("/api/attendance", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        studentId:storedStudentId,
-        sessionId: id,
-        lat,
-        lng,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          localStorage.setItem(StudentId_KEY, storedStudentId);
-          startCooldown(storedStudentId);
-          setmessage("");
-        }
-      })
-      .catch(() => {
-        console.log(
-          "An error occurred while submitting attendance. Please try again.",
-        );
-      });
+ 
     setIsSubmitted(false);
     setStudentId("");
   };
