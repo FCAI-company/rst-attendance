@@ -49,7 +49,7 @@ export async function GET(
 export async function POST(req: NextRequest) {
   try {
     const date = new Date();
-    const { Instructor, location, courseCode, sessionType, tkn } =
+    const { Instructor, location, courseCode, sessionGroup, sessionType, tkn } =
       await req.json();
 
     // 1️⃣ Insert session into MongoDB
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
       courseCode,
       sessionType,
       tkn,
+      sessionGroup,
       createdAt: date,
     };
     const result = await db.collection("sessions").insertOne(sessionDoc);
