@@ -7,10 +7,10 @@ import { ObjectId } from "mongodb";
 import nodemailer from "nodemailer";
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json(
