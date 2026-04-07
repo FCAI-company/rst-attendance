@@ -3,7 +3,6 @@ import { getDB } from "@/lib/mongodb";
 // import { studentDT } from "@/lib/data/student";
 // import dns from "dns";
 // dns.setDefaultResultOrder("ipv4first");
-
 import students from "@/lib/data/students.json";
 export async function GET(request: Request) {
   try {
@@ -27,9 +26,7 @@ export async function GET(request: Request) {
     );
   }
 }
-
 export async function POST(request: Request) {
- 
   try {
     type StudentKeys = keyof typeof students;
     const { studentId, sessionId, lat, lng } = (await request.json()) as {
