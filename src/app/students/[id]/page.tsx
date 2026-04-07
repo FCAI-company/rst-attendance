@@ -61,7 +61,7 @@ export default function AttendanceReportScreen() {
           }),
           totalStudents: 0,
         };
-        fetch(`/api/attendance?sessionId=${id.toString().split('_')[3]}`)
+        fetch(`/api/attendance?sessionId=${id.toString().split('_')[2]}`)
           .then((res) => res.json())
           .then((data) => {
             console.log("Fetched attendance data:", data);
