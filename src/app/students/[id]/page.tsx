@@ -87,12 +87,6 @@ export default function AttendanceReportScreen() {
           .catch((err) => {
             console.error("Error fetching attendance data:", err);
           });
-
-    
-
-       
-     
-    
   }, [id]);
 
   // const downloadExcel = () => {
@@ -259,14 +253,6 @@ const downloadExcel = () => {
     `${sessionInfo.courseCode}_${sessionInfo.sessionGroup}_${sessionInfo.sessionDate}.xlsx`,
   );
 };
-
-
-
-
-
-
-
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

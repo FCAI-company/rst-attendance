@@ -114,13 +114,9 @@ fetch(`/api/qr/${sessionId}`)
       async (position) => {
      
 
-         const res = await fetch(
-           `https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json&addressdetails=1`,
-         );
+         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json&addressdetails=1`);
          const data = await res.json();
-       
-          
-           fetch("/api/attendance", {
+          fetch("/api/attendance", {
              method: "POST",
              headers: { "Content-Type": "application/json" },
              body: JSON.stringify({
