@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react"; 
-import { CheckCircle2, Camera, QrCode } from "lucide-react";
+import { CheckCircle2, Camera, QrCode, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Label } from "@/Components/ui/label";
 import { Input } from "@/Components/ui/input";
 import { Button } from "@/Components/ui/button";
 import { useParams } from "next/navigation";
 import QRScanner from "../QRScanner";
- 
+import FingerprintJS from '@fingerprintjs/fingerprintjs'
+
 interface CooldownData {
   timestamp: number;
   studentId: string;
@@ -24,9 +25,12 @@ export default function CheckinPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [istimeout, setistimeout] = useState(false);
   const [message, setmessage] = useState("");
+  const [errmessage, seterrmessage] = useState("");
+
+  const [visitorId, setvisitorId] = useState("");
 
   const [SEC, setSEC] = useState(0);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+  const [location, setLocation] = useState<{ lat: number; lng: number ,location:string} | null>(
     null,
   );
 
@@ -52,6 +56,10 @@ function secondsBetween(time1: string): number {
 
 
   useEffect(() => {
+    FingerprintJS.load().then(fp => fp.get()).then(result => {
+      setvisitorId(result.visitorId);
+    });
+  
         if (!navigator.geolocation) {
           alert("Geolocation not supported");
           return;
@@ -60,27 +68,45 @@ function secondsBetween(time1: string): number {
               return;
         }
         const sessionId = id.toString().split('_')[2] as string;
+        fetch(`/api/qr/${sessionId}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              console.log("Session data:", data.data.tkn, tokn);
+              if (data.data.tkn != tokn) {
+                // setistimeout(true);
+              } else {
+                setistimeout(false);
+              }
+            }
+          })
+          .catch(() => {
+            console.log("Failed to fetch session data");
+          });
+
+
         const tokn = id.toString().split("_")[0]+"_"+id.toString().split("_")[1] as string;
-     
-fetch(`/api/qr/${sessionId}`)
-.then((res) => res.json())
-.then((data) => {
-  if (data.success) {
-    console.log("Session data:", data.data.tkn,tokn);
-    if (data.data.tkn != tokn) {
-    setistimeout(true);
-    } else {
-      setistimeout(false);
-    }
-   }
-  })
-    .catch(() => {
-  console.log("Failed to fetch session data");
-});
-
-
-       
-
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              fetch(
+                `https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json&addressdetails=1`,
+              )
+                .then((res) => res.json())
+                .then((data) => {
+                  setLocation({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    location: data.display_name,
+                  });
+                })
+                .catch(() => {
+                  setmessage("Failed to fetch location");
+                });
+            },
+            (error) => {
+              console.error(error);
+            },
+          );
       const stored = localStorage.getItem(STORAGE_KEY);
       const storedStudentId = localStorage.getItem(StudentId_KEY);
       if (storedStudentId) {
@@ -109,43 +135,47 @@ fetch(`/api/qr/${sessionId}`)
       setmessage("Please enter your Student ID");
       return;
     }
-     
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-     
 
-         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json&addressdetails=1`);
-         const data = await res.json();
-          fetch("/api/attendance", {
+
+    try{
+             fetch("/api/attendance", {
              method: "POST",
              headers: { "Content-Type": "application/json" },
              body: JSON.stringify({
                studentId: storedStudentId,
                sessionId: id,
-               location: data.display_name,
-              lat : position.coords.latitude,
-               lng : position.coords.longitude
+               location: location?.location,
+              lat : location?.lat,
+               lng : location?.lng,
+               visitorId: visitorId,
              }),
            })
-             .then((res) => res.json())
+             .then((async (res) => {
+    const data = await res.json();
+
+    if (!res.ok) {
+      seterrmessage(data.error || "Failed to submit attendance");
+      setIsSubmitted(true);
+    }
+
+    return data;
+  }))
              .then((data) => {
                if (data.success) {
                  localStorage.setItem(StudentId_KEY, storedStudentId);
                  startCooldown(storedStudentId);
                  setmessage("");
                }
+
              })
-             .catch(() => {
-               console.log(
+    } 
+        catch(err)  {
+               console.log(err,
                  "An error occurred while submitting attendance. Please try again.",
                );
-             });
+             };
    
-      },
-      (error) => {
-        console.error(error);
-      },
-    );
+
  
     setIsSubmitted(false);
     setStudentId("");
@@ -165,12 +195,13 @@ fetch(`/api/qr/${sessionId}`)
           <CardDescription>
             Mark your attendance for today's session
           </CardDescription>
-      
         </CardHeader>
 
         {istimeout ? (
           <CardContent className="space-y-6">
-            <h2 className="text-center text-red-700 font-bold">Time is up, please rescan the code.</h2>
+            <h2 className="text-center text-red-700 font-bold">
+              Time is up, please rescan the code.
+            </h2>
             <QRScanner />
           </CardContent>
         ) : (
@@ -192,28 +223,41 @@ fetch(`/api/qr/${sessionId}`)
             </div>
 
             <Button
-              onClick={()=>handleSubmit(studentId || "")}
+              onClick={() => handleSubmit(studentId || "")}
               className="w-full h-14 text-lg"
               disabled={isSubmitted}
             >
               {isSubmitted ? "Submitted!" : "Submit Attendance"}
             </Button>
-
             {/* Success Message */}
-            {isSubmitted && (
-              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0">
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-green-800">
-                      ✅ Attendance Recorded Successfully
-                    </p>
+            {isSubmitted &&
+              (errmessage ? (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <X className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-red-800">
+                       {errmessage}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0">
+                      <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-green-800">
+                        Attendance Recorded Successfully
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
 
             {/* Info Box */}
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">

@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
       </head>
 
       <body style="margin:0;padding:0;background:#eef2f7;font-family:Arial, Helvetica, sans-serif;">
-
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#eef2f7;padding:40px 0;">
       <tr>
       <td align="center">
@@ -53,16 +52,13 @@ export async function POST(req: NextRequest) {
 
       <table width="100%">
       <tr>
-
-
-
       <td align="left" style="font-size:20px;font-weight:600;color:#1f2937;">
       RST Attendance System
       </td>
 
       <td align="right">
-      <img src="cid:FCAIlogo" alt="FCAI Logo"  width="80" height="80" style="height:50px;" >
-      <img src="cid:universitylogo" alt="University Logo" width="80" height="80" style="height:50px;" >
+      <img src="cid:FCAIlogo" alt="FCAI Logo"   style="height:50px;" >
+      <img src="cid:universitylogo" alt="University Logo"  style="height:50px;" >
 
       </td>
 
