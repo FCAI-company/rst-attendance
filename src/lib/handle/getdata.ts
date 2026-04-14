@@ -21,7 +21,8 @@ export function getSchedule(): ScheduleEntry[] | string {
   const currentDay = now.toLocaleDateString("en-US", { weekday: "long" });
  // ("09:00:00");
   //now.toTimeString().slice(0, 8)
-  const currentTime = "09:00:00"; // HH:MM:SS
+  const currentTime = now.toTimeString().slice(0, 8);
+  // "09:00:00"; // HH:MM:SS
   const currentClass = schedule.filter((item) => {
     return (
       item.Day === currentDay &&
